@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Monitor — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:#0e0e10;color:#f0f0f0;display:flex;min-height:100vh;font-size:13px}
+aside{width:220px;min-width:220px;background:#18181c;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+.logo{padding:22px 20px;font-size:15px;font-weight:500;color:#7ee8a2;letter-spacing:0.08em;border-bottom:1px solid rgba(255,255,255,0.07)}
+nav{flex:1;padding:10px 0}
+nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:#666;text-decoration:none;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent}
+nav a:hover{color:#f0f0f0;background:rgba(255,255,255,0.04)}
+nav a.active{color:#7ee8a2;background:rgba(126,232,162,0.06);border-left:2px solid #7ee8a2}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sidebar-bottom{padding:16px;border-top:1px solid rgba(255,255,255,0.07)}
+.plan-badge{font-size:10px;letter-spacing:0.1em;color:#f5a623;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);border-radius:4px;padding:4px 8px;margin-bottom:10px;display:inline-block}
+.upgrade-btn{width:100%;padding:8px;background:transparent;border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.06em;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.upgrade-btn:hover{background:rgba(126,232,162,0.08)}
+main{flex:1;display:flex;overflow:hidden}
+
+/* SETTINGS NAV */
+.settings-nav{width:200px;min-width:200px;border-right:1px solid rgba(255,255,255,0.07);padding:24px 0}
+.snav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:12px;color:#666;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;letter-spacing:0.03em}
+.snav-item:hover{color:#f0f0f0;background:rgba(255,255,255,0.03)}
+.snav-item.active{color:#7ee8a2;background:rgba(126,232,162,0.05);border-left-color:#7ee8a2}
+.snav-icon{font-size:13px;width:18px;text-align:center}
+
+/* CONTENT */
+.settings-content{flex:1;padding:28px;overflow-y:auto}
+.settings-panel{display:none}
+.settings-panel.active{display:block}
+.panel-title{font-size:16px;font-weight:500;color:#7ee8a2;letter-spacing:0.05em;margin-bottom:4px}
+.panel-sub{font-size:11px;color:#555;margin-bottom:24px}
+
+/* FORM ELEMENTS */
+.form-section{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:20px;margin-bottom:16px}
+.form-section-title{font-size:10px;font-weight:500;letter-spacing:0.1em;color:#555;text-transform:uppercase;margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:16px}
+.form-group:last-child{margin-bottom:0}
+.form-label{font-size:11px;color:#888;letter-spacing:0.05em;margin-bottom:6px;display:block}
+.form-input{width:100%;background:#22222a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:9px 12px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:rgba(126,232,162,0.4)}
+.form-input::placeholder{color:#444}
+.form-input:disabled{opacity:0.4;cursor:not-allowed}
+.form-select{width:100%;background:#22222a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:9px 12px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.15s;appearance:none;cursor:pointer}
+.form-select:focus{border-color:rgba(126,232,162,0.4)}
+.form-hint{font-size:10px;color:#444;margin-top:5px;line-height:1.5}
+
+/* API KEY ROW */
+.key-row{display:flex;gap:8px;align-items:center}
+.key-row .form-input{flex:1;font-family:'DM Mono',monospace;letter-spacing:0.04em}
+.btn-copy{padding:9px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-copy:hover{color:#5bc4f5;border-color:rgba(91,196,245,0.3)}
+.btn-regen{padding:9px 12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-regen:hover{color:#f5a623;border-color:rgba(245,166,35,0.3)}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.toggle-row:last-child{border-bottom:none;padding-bottom:0}
+.toggle-info{flex:1}
+.toggle-name{font-size:12px;color:#f0f0f0;margin-bottom:3px}
+.toggle-desc{font-size:11px;color:#444;line-height:1.5}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0;margin-left:16px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:10px;cursor:pointer;transition:background 0.2s}
+.toggle input:checked+.toggle-track{background:#7ee8a2}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform 0.2s;pointer-events:none}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+
+/* TEAM TABLE */
+.team-table{width:100%;border-collapse:collapse}
+.team-table thead th{padding:8px 12px;text-align:left;font-size:10px;font-weight:500;letter-spacing:0.06em;color:#555;border-bottom:1px solid rgba(255,255,255,0.07);text-transform:uppercase}
+.team-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+.team-table tbody tr:hover{background:rgba(255,255,255,0.03)}
+.team-table tbody td{padding:10px 12px;font-size:12px;color:#ccc}
+.avatar{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-right:8px;vertical-align:middle}
+.role-badge{font-size:10px;font-weight:500;letter-spacing:0.06em;padding:2px 7px;border-radius:3px}
+.rb-owner{background:rgba(126,232,162,0.12);color:#7ee8a2}
+.rb-admin{background:rgba(91,196,245,0.12);color:#5bc4f5}
+.rb-viewer{background:rgba(255,255,255,0.06);color:#888}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* DANGER ZONE */
+.danger-section{background:#18181c;border:1px solid rgba(240,98,146,0.15);border-radius:10px;padding:20px;margin-bottom:16px}
+.danger-title{font-size:10px;font-weight:500;letter-spacing:0.1em;color:#f06292;text-transform:uppercase;margin-bottom:16px}
+.danger-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.danger-row:last-child{border-bottom:none;padding-bottom:0}
+.danger-info .danger-name{font-size:12px;color:#f0f0f0;margin-bottom:3px}
+.danger-info .danger-desc{font-size:11px;color:#444}
+.btn-danger{padding:7px 14px;background:transparent;border:1px solid rgba(240,98,146,0.3);color:#f06292;font-family:'DM Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-danger:hover{background:rgba(240,98,146,0.08)}
+
+/* BUTTONS */
+.btn-save{padding:9px 20px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-save:hover{background:rgba(126,232,162,0.2)}
+.btn-secondary{padding:9px 20px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-secondary:hover{color:#f0f0f0}
+.btn-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.save-msg{font-size:12px;color:#7ee8a2}
+.invite-row{display:flex;gap:8px;margin-bottom:16px}
+.invite-row .form-input{flex:1}
+.btn-invite{padding:9px 16px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-invite:hover{background:rgba(126,232,162,0.2)}
+.btn-remove{padding:4px 10px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#666;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.15s}
+.btn-remove:hover{color:#f06292;border-color:rgba(240,98,146,0.3)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:#22222a;border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-size:12px;padding:10px 16px;border-radius:8px;display:none;z-index:999}
+
+  .settings-nav{display:none}
+  main{flex-direction:column}
+  .settings-content{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .mgrid{grid-template-columns:1fr}
+  .key-row{flex-wrap:wrap}
+  .key-row .form-input{width:100%}
+  .invite-row{flex-wrap:wrap}
+  .invite-row .form-input{width:100%}
+  table{font-size:11px}
+  thead th,tbody td{padding:6px 8px}
+}
+
+
+
+
+
+
+
+
+
+main,body>div{width:100%}
+.topbar{padding:12px 16px;flex-wrap:wrap;gap:8px}
+.content{padding:14px}
+.stats-grid{grid-template-columns:1fr 1fr!important}
+.overview-cards{grid-template-columns:1fr 1fr!important}
+.summary-cards{grid-template-columns:1fr 1fr!important}
+.two-col{grid-template-columns:1fr!important}
+.plans-grid{grid-template-columns:1fr!important}
+.channel-grid{grid-template-columns:1fr!important}
+.chart-wrap{height:180px}
+.donut-wrap{width:140px;height:140px}
+.donut-section{padding:14px}
+table{font-size:11px}
+thead th,tbody td{padding:6px 8px}
+.search-row{flex-wrap:wrap}
+.search-input{width:100%!important}
+.btn-sm{padding:3px 6px;font-size:9px}
+.bc-bar-row{flex-wrap:wrap;gap:6px}
+.bc-amounts{width:100%}
+.form-row{grid-template-columns:1fr!important}
+.mgrid{grid-template-columns:1fr!important}
+.key-row{flex-wrap:wrap}
+.key-row .form-input{width:100%}
+.invite-row{flex-wrap:wrap}
+.settings-nav{display:none!important}
+.settings-content{padding:14px}
+.rec-header{flex-wrap:wrap;gap:8px}
+.rec-right{flex-direction:row;align-items:center;gap:6px}
+.topnav{padding:12px 16px;flex-wrap:wrap;gap:8px}
+.nav-links{display:none}
+.hero{padding:36px 16px 28px}
+.hero-title{font-size:28px}
+.plans-wrap{padding:0 14px 40px}
+.compare-wrap{overflow-x:auto}
+.app{grid-template-columns:1fr!important;height:auto!important}
+.left-panel{border-right:none;border-bottom:1px solid rgba(255,255,255,0.07)}
+.right-panel{height:550px}
+.log-card-stats{grid-template-columns:1fr 1fr}
+.alert-rule{flex-wrap:wrap;gap:8px}
+.rule-meta{flex-wrap:wrap}
+.page-header{flex-wrap:wrap;gap:8px;padding:14px 16px}
+.section{padding:14px}
+.modal{width:95vw!important}
+}
+
+
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">AI_MONITOR</div>
+  <nav>
+    <a href="dashboard.html"><span class="dot"></span>Dashboard</a>
+    <a href="features.html"><span class="dot"></span>Features</a>
+    <a href="budgets.html"><span class="dot"></span>Budgets</a>
+    <a href="alerts.html"><span class="dot"></span>Alerts</a>
+    <a href="insights.html"><span class="dot"></span>Insights</a>
+    <a href="#" class="active"><span class="dot"></span>Settings</a>
+    <a href="sdk-demo.html"><span class="ndot"></span>SDK Demo</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="plan-badge">FREE PLAN</div>
+    <button class="upgrade-btn" onclick="window.location.href='pricing.html'">↑ Upgrade Plan</button>
+  </div>
+</aside>
+
+<main>
+  <!-- Settings Nav -->
+  <div class="settings-nav">
+    <div class="snav-item active" onclick="showPanel('general',this)"><span class="snav-icon">⚙</span>General</div>
+    <div class="snav-item" onclick="showPanel('apikeys',this)"><span class="snav-icon">🔑</span>API Keys</div>
+    <div class="snav-item" onclick="showPanel('team',this)"><span class="snav-icon">👥</span>Team</div>
+    <div class="snav-item" onclick="showPanel('notifications',this)"><span class="snav-icon">🔔</span>Notifications</div>
+    <div class="snav-item" onclick="showPanel('billing',this)"><span class="snav-icon">💳</span>Billing</div>
+    <div class="snav-item" onclick="showPanel('danger',this)"><span class="snav-icon">⚠</span>Danger Zone</div>
+  </div>
+
+  <!-- Settings Content -->
+  <div class="settings-content">
+
+    <!-- GENERAL -->
+    <div class="settings-panel active" id="panel-general">
+      <div class="panel-title">GENERAL</div>
+      <div class="panel-sub">Manage your workspace and account preferences</div>
+
+      <div class="form-section">
+        <div class="form-section-title">Workspace</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Workspace Name</label>
+            <input class="form-input" id="wsName" type="text" value="My Project"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Workspace ID</label>
+            <input class="form-input" type="text" value="ws_a1b2c3d4" disabled/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Timezone</label>
+          <select class="form-select" id="timezone">
+            <option>UTC</option>
+            <option selected>Asia/Kolkata (IST)</option>
+            <option>America/New_York (EST)</option>
+            <option>America/Los_Angeles (PST)</option>
+            <option>Europe/London (GMT)</option>
+            <option>Europe/Berlin (CET)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Currency Display</label>
+          <select class="form-select" id="currency">
+            <option selected>USD ($)</option>
+            <option>EUR (€)</option>
+            <option>GBP (£)</option>
+            <option>INR (₹)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Profile</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input class="form-input" id="displayName" type="text" value="Dev User"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="email" type="email" value="dev@example.com"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Preferences</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Dark mode</div>
+            <div class="toggle-desc">Use dark theme across the dashboard</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Compact view</div>
+            <div class="toggle-desc">Show more data with reduced spacing</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Show cost in real-time</div>
+            <div class="toggle-desc">Update cost counters live as API calls happen</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked>
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-save" onclick="saveSection('general-msg')">Save Changes</button>
+        <button class="btn-secondary" onclick="resetGeneral()">Reset</button>
+        <span class="save-msg" id="general-msg"></span>
+      </div>
+    </div>
+
+    <!-- API KEYS -->
+    <div class="settings-panel" id="panel-apikeys">
+      <div class="panel-title">API KEYS</div>
+      <div class="panel-sub">Manage your SDK keys and provider API credentials</div>
+
+      <div class="form-section">
+        <div class="form-section-title">SDK Keys — paste into your app</div>
+        <div class="form-group">
+          <label class="form-label">Production Key</label>
+          <div class="key-row">
+            <input class="form-input" id="prodKey" type="password" value="aim_prod_a1b2c3d4e5f6g7h8i9j0"/>
+            <button class="btn-copy" onclick="copyKey('prodKey')">Copy</button>
+            <button class="btn-regen" onclick="regenKey('prodKey','aim_prod_')">Regen</button>
+          </div>
+          <div class="form-hint">Use this in your production environment. Keep it secret.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Development Key</label>
+          <div class="key-row">
+            <input class="form-input" id="devKey" type="password" value="aim_dev_z9y8x7w6v5u4t3s2r1q0"/>
+            <button class="btn-copy" onclick="copyKey('devKey')">Copy</button>
+            <button class="btn-regen" onclick="regenKey('devKey','aim_dev_')">Regen</button>
+          </div>
+          <div class="form-hint">Use this for local development and testing.</div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Provider API Keys — stored encrypted</div>
+        <div class="form-group">
+          <label class="form-label">Google Gemini API Key</label>
+          <div class="key-row">
+            <input class="form-input" id="geminiKey" type="password" placeholder="AIza..."/>
+            <button class="btn-copy" onclick="copyKey('geminiKey')">Copy</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">OpenAI API Key</label>
+          <div class="key-row">
+            <input class="form-input" id="openaiKey" type="password" placeholder="sk-..."/>
+            <button class="btn-copy" onclick="copyKey('openaiKey')">Copy</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anthropic API Key</label>
+          <div class="key-row">
+            <input class="form-input" id="anthropicKey" type="password" placeholder="sk-ant-..."/>
+            <button class="btn-copy" onclick="copyKey('anthropicKey')">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-save" onclick="saveSection('apikeys-msg')">Save Keys</button>
+        <span class="save-msg" id="apikeys-msg"></span>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="settings-panel" id="panel-team">
+      <div class="panel-title">TEAM</div>
+      <div class="panel-sub">Manage team members and their access levels</div>
+
+      <div class="form-section">
+        <div class="form-section-title">Invite Member</div>
+        <div class="invite-row">
+          <input class="form-input" id="inviteEmail" type="email" placeholder="colleague@example.com"/>
+          <select class="form-select" id="inviteRole" style="width:140px">
+            <option>Admin</option>
+            <option>Viewer</option>
+          </select>
+          <button class="btn-invite" onclick="sendInvite()">Send Invite</button>
+        </div>
+        <div id="invite-msg" style="font-size:12px;color:#7ee8a2;display:none"></div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Team Members</div>
+        <table class="team-table" id="teamTable">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="teamBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="settings-panel" id="panel-notifications">
+      <div class="panel-title">NOTIFICATIONS</div>
+      <div class="panel-sub">Choose how and when you want to be notified</div>
+
+      <div class="form-section">
+        <div class="form-section-title">Email Notifications</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Budget threshold alerts</div>
+            <div class="toggle-desc">Email when any budget reaches 70% or 90%</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Cost spike detection</div>
+            <div class="toggle-desc">Email when cost per hour exceeds 3x your average</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Daily summary report</div>
+            <div class="toggle-desc">Receive a daily digest of usage and cost at 9 AM</div>
+          </div>
+          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">New model detected</div>
+            <div class="toggle-desc">Email when a new AI model appears in your usage</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Weekly insights report</div>
+            <div class="toggle-desc">Receive weekly AI-generated cost optimization tips</div>
+          </div>
+          <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Webhook</div>
+        <div class="form-group">
+          <label class="form-label">Webhook URL</label>
+          <input class="form-input" type="url" placeholder="https://your-app.com/webhooks/ai-monitor" value="https://api.example.com/hooks/aim"/>
+          <div class="form-hint">POST requests are sent for every triggered alert. Payload is JSON.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Webhook Secret</label>
+          <div class="key-row">
+            <input class="form-input" type="password" value="whsec_abc123xyz789"/>
+            <button class="btn-copy" onclick="showToast('Secret copied')">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-save" onclick="saveSection('notif-msg')">Save Preferences</button>
+        <button class="btn-secondary" onclick="showToast('Test webhook sent')">Send Test</button>
+        <span class="save-msg" id="notif-msg"></span>
+      </div>
+    </div>
+
+    <!-- BILLING -->
+    <div class="settings-panel" id="panel-billing">
+      <div class="panel-title">BILLING</div>
+      <div class="panel-sub">Manage your plan and payment details</div>
+
+      <div class="form-section">
+        <div class="form-section-title">Current Plan</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:16px;font-weight:500;color:#f5a623;margin-bottom:4px">FREE PLAN</div>
+            <div style="font-size:11px;color:#555;line-height:1.6">Up to 1M tokens tracked · 1 workspace · Email alerts only · 7-day history</div>
+          </div>
+          <button class="btn-save" onclick="window.location.href='pricing.html'">Upgrade to Pro →</button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Usage This Month</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div style="background:#22222a;border-radius:7px;padding:14px">
+            <div style="font-size:10px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">Tokens Tracked</div>
+            <div style="font-size:18px;font-weight:500;color:#f0f0f0">842K</div>
+            <div style="font-size:10px;color:#555;margin-top:4px">of 1M limit</div>
+            <div style="margin-top:8px;background:rgba(255,255,255,0.06);border-radius:2px;height:5px;overflow:hidden">
+              <div style="width:84%;height:100%;background:#f5a623;border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="background:#22222a;border-radius:7px;padding:14px">
+            <div style="font-size:10px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">API Calls</div>
+            <div style="font-size:18px;font-weight:500;color:#f0f0f0">12,480</div>
+            <div style="font-size:10px;color:#555;margin-top:4px">unlimited on free</div>
+          </div>
+          <div style="background:#22222a;border-radius:7px;padding:14px">
+            <div style="font-size:10px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em">History Retained</div>
+            <div style="font-size:18px;font-weight:500;color:#f0f0f0">7 days</div>
+            <div style="font-size:10px;color:#555;margin-top:4px">90 days on Pro</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Billing History</div>
+        <div style="font-size:12px;color:#444;padding:16px 0;text-align:center">No billing history — you are on the free plan</div>
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="settings-panel" id="panel-danger">
+      <div class="panel-title" style="color:#f06292">DANGER ZONE</div>
+      <div class="panel-sub">Irreversible actions — proceed with caution</div>
+
+      <div class="danger-section">
+        <div class="danger-title">Destructive Actions</div>
+        <div class="danger-row">
+          <div class="danger-info">
+            <div class="danger-name">Reset all budgets</div>
+            <div class="danger-desc">Set all provider and feature budgets back to zero</div>
+          </div>
+          <button class="btn-danger" onclick="dangerAction('Reset all budgets to zero?')">Reset Budgets</button>
+        </div>
+        <div class="danger-row">
+          <div class="danger-info">
+            <div class="danger-name">Clear all alert history</div>
+            <div class="danger-desc">Permanently delete all triggered alert records</div>
+          </div>
+          <button class="btn-danger" onclick="dangerAction('Clear all alert history? This cannot be undone.')">Clear History</button>
+        </div>
+        <div class="danger-row">
+          <div class="danger-info">
+            <div class="danger-name">Revoke all SDK keys</div>
+            <div class="danger-desc">Immediately invalidate all SDK keys — your app will stop tracking until you add new keys</div>
+          </div>
+          <button class="btn-danger" onclick="dangerAction('Revoke ALL SDK keys? Your app will stop tracking immediately.')">Revoke Keys</button>
+        </div>
+        <div class="danger-row">
+          <div class="danger-info">
+            <div class="danger-name">Delete workspace</div>
+            <div class="danger-desc">Permanently delete this workspace and all its data. This cannot be undone.</div>
+          </div>
+          <button class="btn-danger" onclick="dangerAction('PERMANENTLY delete this workspace and all data?')">Delete Workspace</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const teamMembers = [
+  {name:'Dev User',email:'dev@example.com',role:'owner',status:'active',joined:'Jan 2025'},
+  {name:'Alice Chen',email:'alice@example.com',role:'admin',status:'active',joined:'Feb 2025'},
+  {name:'Bob Smith',email:'bob@example.com',role:'viewer',status:'pending',joined:'Mar 2025'}
+];
+
+function renderTeam() {
+  const roleClasses = {owner:'rb-owner',admin:'rb-admin',viewer:'rb-viewer'};
+  const avatarColors = ['rgba(126,232,162,0.2)','rgba(91,196,245,0.2)','rgba(245,166,35,0.2)'];
+  const textColors = ['#7ee8a2','#5bc4f5','#f5a623'];
+  document.getElementById('teamBody').innerHTML = teamMembers.map((m,i) => `
+    <tr>
+      <td>
+        <span class="avatar" style="background:${avatarColors[i%3]};color:${textColors[i%3]}">${m.name.split(' ').map(n=>n[0]).join('')}</span>
+        <span style="color:#f0f0f0">${m.name}</span>
+        <span style="color:#444;font-size:11px;margin-left:6px">${m.email}</span>
+      </td>
+      <td><span class="role-badge ${roleClasses[m.role]}">${m.role.toUpperCase()}</span></td>
+      <td><span class="status-dot" style="background:${m.status==='active'?'#7ee8a2':'#f5a623'}"></span>${m.status}</td>
+      <td style="color:#555">${m.joined}</td>
+      <td>${m.role !== 'owner' ? `<button class="btn-remove" onclick="removeTeamMember(${i})">Remove</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+function removeTeamMember(i) {
+  if (confirm('Remove ' + teamMembers[i].name + ' from the workspace?')) {
+    teamMembers.splice(i, 1);
+    renderTeam();
+    showToast('Team member removed');
+  }
+}
+
+function sendInvite() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const role = document.getElementById('inviteRole').value.toLowerCase();
+  const msg = document.getElementById('invite-msg');
+  if (!email || !email.includes('@')) {
+    msg.style.color = '#f06292';
+    msg.textContent = 'Please enter a valid email address.';
+    msg.style.display = 'block';
+    return;
+  }
+  teamMembers.push({name:email.split('@')[0],email,role,status:'pending',joined:'Just now'});
+  renderTeam();
+  document.getElementById('inviteEmail').value = '';
+  msg.style.color = '#7ee8a2';
+  msg.textContent = '✓ Invite sent to ' + email;
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 3000);
+  showToast('Invite sent to ' + email);
+}
+
+function showPanel(id, el) {
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.snav-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function saveSection(msgId) {
+  const el = document.getElementById(msgId);
+  el.textContent = '✓ Saved successfully';
+  showToast('Settings saved');
+  setTimeout(() => el.textContent = '', 2500);
+}
+
+function resetGeneral() {
+  document.getElementById('wsName').value = 'My Project';
+  document.getElementById('displayName').value = 'Dev User';
+  document.getElementById('email').value = 'dev@example.com';
+  showToast('Settings reset to defaults');
+}
+
+function copyKey(inputId) {
+  const el = document.getElementById(inputId);
+  const val = el.value;
+  if (!val) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(val).then(() => showToast('Key copied to clipboard')).catch(() => showToast('Copy failed — select and copy manually'));
+}
+
+function regenKey(inputId, prefix) {
+  if (!confirm('Regenerate this key? The old key will stop working immediately.')) return;
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let key = prefix;
+  for (let i = 0; i < 20; i++) key += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById(inputId).value = key;
+  showToast('New key generated — save it now');
+}
+
+function dangerAction(msg) {
+  if (confirm(msg)) showToast('Action completed');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+renderTeam();
+console.log('PAGE OK — settings.html loaded');
+</script>
+
+
+
+</body>
+</html>

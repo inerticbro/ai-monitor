@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Monitor — Budgets</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:#0e0e10;color:#f0f0f0;display:flex;min-height:100vh;font-size:13px}
+aside{width:220px;min-width:220px;background:#18181c;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+.logo{padding:22px 20px;font-size:15px;font-weight:500;color:#7ee8a2;letter-spacing:0.08em;border-bottom:1px solid rgba(255,255,255,0.07)}
+nav{flex:1;padding:10px 0}
+nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:12px;color:#666;text-decoration:none;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s;border-left:2px solid transparent}
+nav a:hover{color:#f0f0f0;background:rgba(255,255,255,0.04)}
+nav a.active{color:#7ee8a2;background:rgba(126,232,162,0.06);border-left:2px solid #7ee8a2}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sidebar-bottom{padding:16px;border-top:1px solid rgba(255,255,255,0.07)}
+.plan-badge{font-size:10px;letter-spacing:0.1em;color:#f5a623;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);border-radius:4px;padding:4px 8px;margin-bottom:10px;display:inline-block}
+.upgrade-btn{width:100%;padding:8px;background:transparent;border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.06em;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.upgrade-btn:hover{background:rgba(126,232,162,0.08)}
+main{flex:1;padding:28px;overflow-y:auto}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:18px;font-weight:500;color:#7ee8a2;letter-spacing:0.06em}
+.page-sub{font-size:11px;color:#555;margin-top:4px}
+.btn-add{padding:8px 16px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em}
+.btn-add:hover{background:rgba(126,232,162,0.2)}
+.overview-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov-card{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px}
+.ov-label{font-size:10px;color:#555;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.ov-val{font-size:22px;font-weight:500;color:#f0f0f0}
+.ov-sub{font-size:11px;color:#555;margin-top:4px}
+.section{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:20px;margin-bottom:20px}
+.section-title{font-size:11px;font-weight:500;letter-spacing:0.1em;color:#555;margin-bottom:16px;text-transform:uppercase}
+.budget-card{background:#22222a;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px;margin-bottom:12px;transition:border-color 0.15s}
+.budget-card:last-child{margin-bottom:0}
+.bc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.bc-left{display:flex;align-items:center;gap:10px}
+.provider-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.provider-name{font-size:14px;font-weight:500;color:#f0f0f0;letter-spacing:0.04em}
+.bc-right{display:flex;align-items:center;gap:8px}
+.status-badge{font-size:10px;font-weight:500;letter-spacing:0.08em;padding:3px 8px;border-radius:3px}
+.s-ok{background:rgba(126,232,162,0.12);color:#7ee8a2}
+.s-warn{background:rgba(245,166,35,0.12);color:#f5a623}
+.s-over{background:rgba(240,98,146,0.12);color:#f06292}
+.btn-edit{padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#888;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.15s}
+.btn-edit:hover{color:#5bc4f5;border-color:rgba(91,196,245,0.4)}
+.btn-del{padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#888;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.15s}
+.btn-del:hover{color:#f06292;border-color:rgba(240,98,146,0.4)}
+.bc-bar-row{display:flex;align-items:center;gap:12px}
+.bc-amounts{font-size:12px;color:#888;width:130px;flex-shrink:0}
+.bc-amounts span{color:#f0f0f0}
+.bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:3px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.4s ease}
+.bar-pct{font-size:11px;color:#888;width:38px;text-align:right;flex-shrink:0}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;letter-spacing:0.06em;color:#555;border-bottom:1px solid rgba(255,255,255,0.07);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+tbody tr:hover{background:rgba(255,255,255,0.03)}
+tbody td{padding:10px 12px;font-size:12px;color:#ccc;white-space:nowrap}
+.ftag{font-size:10px;font-weight:500;letter-spacing:0.06em;padding:2px 7px;border-radius:3px;display:inline-block}
+.t-chat{background:rgba(91,196,245,0.15);color:#5bc4f5}
+.t-summarizer{background:rgba(126,232,162,0.15);color:#7ee8a2}
+.t-code-assistant{background:rgba(245,166,35,0.15);color:#f5a623}
+.t-image-caption{background:rgba(240,98,146,0.15);color:#f06292}
+.t-search{background:rgba(175,169,236,0.15);color:#afa9ec}
+.tbl-bar-wrap{width:80px;background:rgba(255,255,255,0.06);border-radius:2px;height:5px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.tbl-bar{height:100%;border-radius:2px}
+.history-list{display:flex;flex-direction:column;gap:0}
+.hist-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.hist-msg{flex:1;font-size:12px;color:#ccc}
+.hist-time{font-size:11px;color:#444;flex-shrink:0}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center}
+.modal-backdrop.show{display:flex}
+.modal{background:#18181c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;width:400px;max-width:92vw;position:relative}
+.modal h3{font-size:14px;font-weight:500;color:#7ee8a2;margin-bottom:6px;letter-spacing:0.05em}
+.modal-sub{font-size:11px;color:#555;margin-bottom:18px}
+.modal-x{position:absolute;top:14px;right:16px;background:none;border:none;color:#555;font-size:16px;cursor:pointer;font-family:'DM Mono',monospace}
+.modal-x:hover{color:#f0f0f0}
+.form-label{font-size:11px;color:#555;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;display:block}
+.form-select,.form-input{width:100%;background:#22222a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:9px 12px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:12px;outline:none;margin-bottom:14px;transition:border-color 0.15s;appearance:none}
+.form-select:focus,.form-input:focus{border-color:rgba(126,232,162,0.4)}
+.modal-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-primary{padding:8px 18px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-primary:hover{background:rgba(126,232,162,0.2)}
+.btn-cancel{padding:8px 18px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-cancel:hover{color:#f0f0f0}
+.modal-msg{font-size:12px;color:#7ee8a2}
+.modal-err{font-size:12px;color:#f06292}
+
+  main{width:100%}
+  .page-header{flex-wrap:wrap;padding:12px 16px}
+  .content,.main{padding:16px}
+  .overview-cards{grid-template-columns:1fr 1fr}
+  .bc-bar-row{flex-wrap:wrap;gap:6px}
+  .bc-amounts{width:100%}
+  table{font-size:11px}
+  thead th,tbody td{padding:7px 8px}
+  .form-row{grid-template-columns:1fr}
+}
+
+
+
+
+
+
+
+
+
+main,body>div{width:100%}
+.topbar{padding:12px 16px;flex-wrap:wrap;gap:8px}
+.content{padding:14px}
+.stats-grid{grid-template-columns:1fr 1fr!important}
+.overview-cards{grid-template-columns:1fr 1fr!important}
+.summary-cards{grid-template-columns:1fr 1fr!important}
+.two-col{grid-template-columns:1fr!important}
+.plans-grid{grid-template-columns:1fr!important}
+.channel-grid{grid-template-columns:1fr!important}
+.chart-wrap{height:180px}
+.donut-wrap{width:140px;height:140px}
+.donut-section{padding:14px}
+table{font-size:11px}
+thead th,tbody td{padding:6px 8px}
+.search-row{flex-wrap:wrap}
+.search-input{width:100%!important}
+.btn-sm{padding:3px 6px;font-size:9px}
+.bc-bar-row{flex-wrap:wrap;gap:6px}
+.bc-amounts{width:100%}
+.form-row{grid-template-columns:1fr!important}
+.mgrid{grid-template-columns:1fr!important}
+.key-row{flex-wrap:wrap}
+.key-row .form-input{width:100%}
+.invite-row{flex-wrap:wrap}
+.settings-nav{display:none!important}
+.settings-content{padding:14px}
+.rec-header{flex-wrap:wrap;gap:8px}
+.rec-right{flex-direction:row;align-items:center;gap:6px}
+.topnav{padding:12px 16px;flex-wrap:wrap;gap:8px}
+.nav-links{display:none}
+.hero{padding:36px 16px 28px}
+.hero-title{font-size:28px}
+.plans-wrap{padding:0 14px 40px}
+.compare-wrap{overflow-x:auto}
+.app{grid-template-columns:1fr!important;height:auto!important}
+.left-panel{border-right:none;border-bottom:1px solid rgba(255,255,255,0.07)}
+.right-panel{height:550px}
+.log-card-stats{grid-template-columns:1fr 1fr}
+.alert-rule{flex-wrap:wrap;gap:8px}
+.rule-meta{flex-wrap:wrap}
+.page-header{flex-wrap:wrap;gap:8px;padding:14px 16px}
+.section{padding:14px}
+.modal{width:95vw!important}
+}
+
+
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">AI_MONITOR</div>
+  <nav>
+    <a href="dashboard.html"><span class="dot"></span>Dashboard</a>
+    <a href="features.html"><span class="dot"></span>Features</a>
+    <a href="#" class="active"><span class="dot"></span>Budgets</a>
+    <a href="alerts.html"><span class="dot"></span>Alerts</a>
+    <a href="insights.html"><span class="dot"></span>Insights</a>
+    <a href="settings.html"><span class="dot"></span>Settings</a>
+    <a href="sdk-demo.html"><span class="ndot"></span>SDK Demo</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="plan-badge">FREE PLAN</div>
+    <button class="upgrade-btn" onclick="window.location.href='pricing.html'">↑ Upgrade Plan</button>
+  </div>
+</aside>
+
+<main>
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">BUDGET_MANAGER</div>
+      <div class="page-sub">Set and monitor spend limits per provider and feature</div>
+    </div>
+    <button class="btn-add" id="addBudgetBtn">+ Add Budget</button>
+  </div>
+
+  <!-- Overview Cards -->
+  <div class="overview-cards">
+    <div class="ov-card">
+      <div class="ov-label">Total Budget</div>
+      <div class="ov-val">$20.00</div>
+      <div class="ov-sub">across all providers</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">Spent Today</div>
+      <div class="ov-val" style="color:#5bc4f5">$5.27</div>
+      <div class="ov-sub">of $20.00 total</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">Remaining</div>
+      <div class="ov-val" style="color:#7ee8a2">$14.73</div>
+      <div class="ov-sub">resets at midnight</div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-label">Budgets at Risk</div>
+      <div class="ov-val" style="color:#f5a623">1</div>
+      <div class="ov-sub">OpenAI at 84%</div>
+    </div>
+  </div>
+
+  <!-- Provider Budgets -->
+  <div class="section">
+    <div class="section-title">Provider Budgets</div>
+    <div id="providerBudgets">
+
+      <div class="budget-card" id="bc-gemini">
+        <div class="bc-top">
+          <div class="bc-left">
+            <div class="provider-dot" style="background:#7ee8a2"></div>
+            <span class="provider-name">Gemini</span>
+          </div>
+          <div class="bc-right">
+            <span class="status-badge s-ok">ON TRACK</span>
+            <button class="btn-edit" onclick="openEdit('bc-gemini','Gemini',5.00)">Edit</button>
+            <button class="btn-del" onclick="deleteBudget('bc-gemini')">Delete</button>
+          </div>
+        </div>
+        <div class="bc-bar-row">
+          <div class="bc-amounts">Spent: <span class="spent-val">$0.85</span> / <span class="limit-val">$5.00</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:17%;background:#7ee8a2"></div></div>
+          <div class="bar-pct pct-val">17%</div>
+        </div>
+      </div>
+
+      <div class="budget-card" id="bc-openai">
+        <div class="bc-top">
+          <div class="bc-left">
+            <div class="provider-dot" style="background:#5bc4f5"></div>
+            <span class="provider-name">OpenAI</span>
+          </div>
+          <div class="bc-right">
+            <span class="status-badge s-warn">WARNING</span>
+            <button class="btn-edit" onclick="openEdit('bc-openai','OpenAI',5.00)">Edit</button>
+            <button class="btn-del" onclick="deleteBudget('bc-openai')">Delete</button>
+          </div>
+        </div>
+        <div class="bc-bar-row">
+          <div class="bc-amounts">Spent: <span class="spent-val">$4.20</span> / <span class="limit-val">$5.00</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:84%;background:#f5a623"></div></div>
+          <div class="bar-pct pct-val">84%</div>
+        </div>
+      </div>
+
+      <div class="budget-card" id="bc-anthropic">
+        <div class="bc-top">
+          <div class="bc-left">
+            <div class="provider-dot" style="background:#f06292"></div>
+            <span class="provider-name">Anthropic</span>
+          </div>
+          <div class="bc-right">
+            <span class="status-badge s-ok">ON TRACK</span>
+            <button class="btn-edit" onclick="openEdit('bc-anthropic','Anthropic',5.00)">Edit</button>
+            <button class="btn-del" onclick="deleteBudget('bc-anthropic')">Delete</button>
+          </div>
+        </div>
+        <div class="bc-bar-row">
+          <div class="bc-amounts">Spent: <span class="spent-val">$0.22</span> / <span class="limit-val">$5.00</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:4%;background:#7ee8a2"></div></div>
+          <div class="bar-pct pct-val">4%</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Feature Budgets Table -->
+  <div class="section">
+    <div class="section-title">Feature Budgets</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Daily Limit</th>
+            <th>Spent</th>
+            <th>Remaining</th>
+            <th>% Used</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="featureTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Budget History -->
+  <div class="section">
+    <div class="section-title">Budget History</div>
+    <div class="history-list">
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#f5a623"></div>
+        <div class="hist-msg">OpenAI daily budget 84% reached</div>
+        <div class="hist-time">Today 11:42 AM</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#7ee8a2"></div>
+        <div class="hist-msg">Budget reset — new day started</div>
+        <div class="hist-time">Today 12:00 AM</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#5bc4f5"></div>
+        <div class="hist-msg">code-assistant budget updated to $3.00</div>
+        <div class="hist-time">Yesterday 3:15 PM</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#f5a623"></div>
+        <div class="hist-msg">OpenAI budget 70% threshold crossed</div>
+        <div class="hist-time">Yesterday 10:08 AM</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#7ee8a2"></div>
+        <div class="hist-msg">Gemini budget created — $5.00/day</div>
+        <div class="hist-time">2 days ago</div>
+      </div>
+      <div class="hist-item">
+        <div class="hist-dot" style="background:#7ee8a2"></div>
+        <div class="hist-msg">All provider budgets reset</div>
+        <div class="hist-time">2 days ago</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- EDIT MODAL -->
+<div class="modal-backdrop" id="editModal" onclick="backdropClose(event,'editModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('editModal')">✕</button>
+    <h3>Edit Budget</h3>
+    <div class="modal-sub">Provider: <span id="edit-name" style="color:#7ee8a2">—</span></div>
+    <label class="form-label">New Daily Limit (USD)</label>
+    <input class="form-input" id="editInput" type="number" min="0.01" step="0.01" placeholder="e.g. 10.00"/>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+      <button class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+      <span class="modal-msg" id="editMsg"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-backdrop" id="addModal" onclick="backdropClose(event,'addModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('addModal')">✕</button>
+    <h3>Add New Budget</h3>
+    <div class="modal-sub">Set a daily spend limit for a provider or feature</div>
+    <label class="form-label">Type</label>
+    <select class="form-select" id="addType" onchange="updateAddOptions()">
+      <option value="provider">Provider</option>
+      <option value="feature">Feature</option>
+    </select>
+    <label class="form-label">Select</label>
+    <select class="form-select" id="addTarget">
+      <option>Gemini</option>
+      <option>OpenAI</option>
+      <option>Anthropic</option>
+    </select>
+    <label class="form-label">Daily Limit (USD)</label>
+    <input class="form-input" id="addLimitInput" type="number" min="0.01" step="0.01" placeholder="e.g. 5.00"/>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveAdd()">Add Budget</button>
+      <button class="btn-cancel" onclick="closeModal('addModal')">Cancel</button>
+      <span class="modal-msg" id="addMsg"></span>
+      <span class="modal-err" id="addErr"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const featureData = [
+  {feature:'chat',cls:'t-chat',limit:3.00,spent:0.0184},
+  {feature:'code-assistant',cls:'t-code-assistant',limit:3.00,spent:0.0244},
+  {feature:'summarizer',cls:'t-summarizer',limit:2.00,spent:0.0079},
+  {feature:'image-caption',cls:'t-image-caption',limit:1.00,spent:0.0040},
+  {feature:'search',cls:'t-search',limit:1.00,spent:0.0022}
+];
+
+function getBarColor(pct) {
+  if (pct >= 90) return '#f06292';
+  if (pct >= 70) return '#f5a623';
+  return '#7ee8a2';
+}
+
+function getStatusBadge(pct) {
+  if (pct >= 90) return '<span class="status-badge s-over">OVER LIMIT</span>';
+  if (pct >= 70) return '<span class="status-badge s-warn">WARNING</span>';
+  return '<span class="status-badge s-ok">ON TRACK</span>';
+}
+
+function renderFeatureTable() {
+  const tbody = document.getElementById('featureTbody');
+  tbody.innerHTML = featureData.map(r => {
+    const pct = Math.round((r.spent / r.limit) * 100);
+    const remaining = (r.limit - r.spent).toFixed(4);
+    const color = getBarColor(pct);
+    return `<tr>
+      <td><span class="ftag ${r.cls}">${r.feature}</span></td>
+      <td>$${r.limit.toFixed(2)}</td>
+      <td>$${r.spent.toFixed(4)}</td>
+      <td>$${remaining}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="tbl-bar-wrap"><div class="tbl-bar" style="width:${pct}%;background:${color}"></div></div>
+          ${pct}%
+        </div>
+      </td>
+      <td>${getStatusBadge(pct)}</td>
+      <td>
+        <button class="btn-edit" onclick="openFeatureEdit('${r.feature}',${r.limit})">Edit</button>
+        <button class="btn-del" onclick="deleteFeatureRow(this)">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let editCardId = '';
+
+function openEdit(cardId, name, currentLimit) {
+  editCardId = cardId;
+  document.getElementById('edit-name').textContent = name;
+  document.getElementById('editInput').value = currentLimit.toFixed(2);
+  document.getElementById('editMsg').textContent = '';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function openFeatureEdit(feature, currentLimit) {
+  editCardId = '';
+  document.getElementById('edit-name').textContent = feature;
+  document.getElementById('editInput').value = currentLimit.toFixed(2);
+  document.getElementById('editMsg').textContent = '';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function saveEdit() {
+  const val = parseFloat(document.getElementById('editInput').value);
+  if (!val || val <= 0) {
+    document.getElementById('editMsg').textContent = 'Enter a valid amount';
+    document.getElementById('editMsg').style.color = '#f06292';
+    return;
+  }
+  if (editCardId) {
+    const card = document.getElementById(editCardId);
+    const limitEl = card.querySelector('.limit-val');
+    const spentEl = card.querySelector('.spent-val');
+    const pctEl = card.querySelector('.pct-val');
+    const barEl = card.querySelector('.bar-fill');
+    const badgeEl = card.querySelector('.status-badge');
+    limitEl.textContent = '$' + val.toFixed(2);
+    const spent = parseFloat(spentEl.textContent.replace('$',''));
+    const pct = Math.round((spent / val) * 100);
+    const color = getBarColor(pct);
+    barEl.style.width = pct + '%';
+    barEl.style.background = color;
+    pctEl.textContent = pct + '%';
+    const newBadge = getStatusBadge(pct);
+    badgeEl.outerHTML = newBadge;
+  }
+  document.getElementById('editMsg').style.color = '#7ee8a2';
+  document.getElementById('editMsg').textContent = '✓ Saved';
+  setTimeout(() => closeModal('editModal'), 1200);
+}
+
+function deleteBudget(cardId) {
+  if (confirm('Delete this budget? This cannot be undone.')) {
+    const card = document.getElementById(cardId);
+    card.style.opacity = '0';
+    card.style.transition = 'opacity 0.3s';
+    setTimeout(() => card.remove(), 300);
+  }
+}
+
+function deleteFeatureRow(btn) {
+  if (confirm('Delete this feature budget?')) {
+    const row = btn.closest('tr');
+    row.style.opacity = '0';
+    row.style.transition = 'opacity 0.3s';
+    setTimeout(() => row.remove(), 300);
+  }
+}
+
+function updateAddOptions() {
+  const type = document.getElementById('addType').value;
+  const target = document.getElementById('addTarget');
+  if (type === 'provider') {
+    target.innerHTML = '<option>Gemini</option><option>OpenAI</option><option>Anthropic</option>';
+  } else {
+    target.innerHTML = '<option>chat</option><option>summarizer</option><option>code-assistant</option><option>image-caption</option><option>search</option>';
+  }
+}
+
+function saveAdd() {
+  const val = parseFloat(document.getElementById('addLimitInput').value);
+  const target = document.getElementById('addTarget').value;
+  const type = document.getElementById('addType').value;
+  document.getElementById('addErr').textContent = '';
+  document.getElementById('addMsg').textContent = '';
+  if (!val || val <= 0) {
+    document.getElementById('addErr').textContent = 'Enter a valid amount.';
+    return;
+  }
+  if (type === 'provider') {
+    const colors = {Gemini:'#7ee8a2',OpenAI:'#5bc4f5',Anthropic:'#f06292'};
+    const color = colors[target] || '#888';
+    const id = 'bc-' + target.toLowerCase() + '-' + Date.now();
+    const card = document.createElement('div');
+    card.className = 'budget-card';
+    card.id = id;
+    card.innerHTML = `
+      <div class="bc-top">
+        <div class="bc-left">
+          <div class="provider-dot" style="background:${color}"></div>
+          <span class="provider-name">${target}</span>
+        </div>
+        <div class="bc-right">
+          <span class="status-badge s-ok">ON TRACK</span>
+          <button class="btn-edit" onclick="openEdit('${id}','${target}',${val})">Edit</button>
+          <button class="btn-del" onclick="deleteBudget('${id}')">Delete</button>
+        </div>
+      </div>
+      <div class="bc-bar-row">
+        <div class="bc-amounts">Spent: <span class="spent-val">$0.00</span> / <span class="limit-val">$${val.toFixed(2)}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:0%;background:#7ee8a2"></div></div>
+        <div class="bar-pct pct-val">0%</div>
+      </div>`;
+    document.getElementById('providerBudgets').appendChild(card);
+  }
+  document.getElementById('addMsg').textContent = '✓ Budget added!';
+  document.getElementById('addLimitInput').value = '';
+  setTimeout(() => closeModal('addModal'), 1500);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function backdropClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+document.getElementById('addBudgetBtn').addEventListener('click', () => {
+  document.getElementById('addMsg').textContent = '';
+  document.getElementById('addErr').textContent = '';
+  document.getElementById('addModal').classList.add('show');
+});
+
+renderFeatureTable();
+console.log('PAGE OK — budgets.html loaded');
+</script>
+
+
+
+</body>
+</html>

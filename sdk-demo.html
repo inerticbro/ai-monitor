@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Monitor — SDK Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:wght@300;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:#0e0e10;color:#f0f0f0;min-height:100vh;font-size:13px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid rgba(255,255,255,0.07);background:#18181c;flex-wrap:wrap;gap:10px}
+.logo{font-size:15px;font-weight:500;color:#7ee8a2;letter-spacing:0.08em}
+.logo span{color:#888;font-weight:400;font-size:12px;margin-left:8px;letter-spacing:0.04em}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sdk-status{display:flex;align-items:center;gap:7px;font-size:11px;color:#888;letter-spacing:0.06em}
+.pulse{width:8px;height:8px;border-radius:50%;background:#7ee8a2;position:relative;flex-shrink:0}
+.pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid #7ee8a2;animation:pulse 1.5s ease-out infinite;opacity:0}
+@keyframes pulse{0%{transform:scale(0.8);opacity:0.8}100%{transform:scale(2);opacity:0}}
+.pulse.inactive{background:#444}
+.pulse.inactive::after{display:none}
+.toggle-monitor{display:flex;align-items:center;gap:8px;font-size:11px;color:#888;cursor:pointer}
+.toggle{position:relative;width:36px;height:20px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:10px;transition:background 0.2s;cursor:pointer}
+.toggle input:checked+.toggle-track{background:#7ee8a2}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform 0.2s;pointer-events:none}
+.toggle input:checked~.toggle-thumb{transform:translateX(16px)}
+.btn-copy-sdk{padding:7px 14px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em}
+.btn-copy-sdk:hover{background:rgba(126,232,162,0.2)}
+.btn-copy-sdk.copied{border-color:#7ee8a2;background:rgba(126,232,162,0.2)}
+.btn-dashboard{padding:7px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:11px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-dashboard:hover{color:#f0f0f0}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 63px)}
+
+/* LEFT PANEL */
+.left-panel{border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;overflow:hidden}
+.panel-header{padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.07);font-size:10px;font-weight:500;letter-spacing:0.12em;color:#555;text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.panel-dot{width:6px;height:6px;border-radius:50%;background:#f5a623;flex-shrink:0}
+.panel-body{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+
+/* FORM */
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:10px;color:#555;letter-spacing:0.08em;text-transform:uppercase}
+.form-select,.form-textarea{background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:9px 12px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.15s;width:100%;appearance:none}
+.form-select:focus,.form-textarea:focus{border-color:rgba(126,232,162,0.4)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.6}
+.two-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.send-btn{width:100%;padding:12px;background:rgba(126,232,162,0.12);border:1px solid rgba(126,232,162,0.35);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em}
+.send-btn:hover{background:rgba(126,232,162,0.22)}
+.send-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* RESPONSE BOX */
+.response-box{background:#18181c;border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden}
+.rb-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);background:#22222a}
+.rb-title{font-size:10px;color:#555;letter-spacing:0.06em;display:flex;align-items:center;gap:8px}
+.win-dots{display:flex;gap:4px}
+.win-dot{width:8px;height:8px;border-radius:50%}
+.rb-copy{font-size:10px;color:#555;cursor:pointer;background:none;border:none;font-family:'DM Mono',monospace;transition:color 0.15s}
+.rb-copy:hover{color:#f0f0f0}
+.rb-content{padding:14px;font-size:12px;color:#7ee8a2;line-height:1.7;min-height:70px;white-space:pre-wrap}
+.rb-content.empty{color:#333;font-style:italic}
+.typing{display:inline-block;width:8px;height:13px;background:#7ee8a2;margin-left:2px;animation:blink 1s step-end infinite;vertical-align:text-bottom}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.code-content{padding:14px;font-size:11px;color:#5bc4f5;line-height:1.7}
+
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;overflow:hidden}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0}
+.stat-cell{padding:14px 16px;border-right:1px solid rgba(255,255,255,0.07)}
+.stat-cell:last-child{border-right:none}
+.stat-label{font-size:10px;color:#555;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px}
+.stat-val{font-size:20px;font-weight:500;font-family:'Fraunces',serif;color:#f0f0f0;line-height:1}
+.stat-sub{font-size:10px;color:#444;margin-top:3px}
+
+/* BUDGET */
+.budget-row{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.budget-label{font-size:10px;color:#555;letter-spacing:0.06em;text-transform:uppercase;width:90px;flex-shrink:0}
+.budget-track{flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:6px;overflow:hidden}
+.budget-fill{height:100%;border-radius:3px;transition:width 0.4s ease,background 0.4s}
+.budget-text{font-size:10px;color:#555;white-space:nowrap;flex-shrink:0;min-width:100px;text-align:right}
+
+/* SPARKLINE */
+.spark-row{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0}
+.spark-label{font-size:10px;color:#555;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.spark-wrap{position:relative;height:48px}
+
+/* DONUT ROW */
+.donut-row{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.donut-wrap{position:relative;width:56px;height:56px;flex-shrink:0}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;color:#555;text-align:center;white-space:nowrap}
+.donut-legend{display:flex;flex-direction:column;gap:5px;flex:1}
+.dl-item{display:flex;align-items:center;justify-content:space-between;font-size:10px}
+.dl-left{display:flex;align-items:center;gap:5px;color:#666}
+.dl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dl-val{color:#888}
+
+/* LOG */
+.log-header{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.log-header-left{font-size:10px;color:#555;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.log-count{background:rgba(126,232,162,0.1);color:#7ee8a2;font-size:10px;padding:1px 7px;border-radius:10px;font-weight:500}
+.log-clear{font-size:10px;color:#444;cursor:pointer;background:none;border:none;font-family:'DM Mono',monospace;transition:color 0.15s}
+.log-clear:hover{color:#888}
+.log-list{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.log-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#333;font-size:12px;gap:8px;text-align:center;padding:20px}
+.log-empty-icon{font-size:28px;opacity:0.3}
+
+/* LOG CARD */
+.log-card{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px 13px;animation:slideIn 0.2s ease;transition:border-color 0.15s}
+.log-card:hover{border-color:rgba(255,255,255,0.12)}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.log-card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap}
+.pb{font-size:10px;font-weight:500;letter-spacing:0.08em;padding:2px 7px;border-radius:3px}
+.pb-gemini{background:rgba(126,232,162,0.15);color:#7ee8a2}
+.pb-openai{background:rgba(91,196,245,0.15);color:#5bc4f5}
+.pb-anthropic{background:rgba(240,98,146,0.15);color:#f06292}
+.fb{font-size:10px;font-weight:500;letter-spacing:0.06em;padding:2px 6px;border-radius:3px}
+.fb-chat{background:rgba(91,196,245,0.1);color:#5bc4f5}
+.fb-summarizer{background:rgba(126,232,162,0.1);color:#7ee8a2}
+.fb-code-assistant{background:rgba(245,166,35,0.1);color:#f5a623}
+.fb-image-caption{background:rgba(240,98,146,0.1);color:#f06292}
+.fb-search{background:rgba(175,169,236,0.1);color:#afa9ec}
+.log-time{font-size:10px;color:#333;margin-left:auto}
+.log-model{font-size:11px;color:#444;margin-bottom:8px}
+.log-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ls{background:#22222a;border-radius:4px;padding:6px 7px;text-align:center}
+.ls-label{font-size:9px;color:#444;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:3px}
+.ls-val{font-size:12px;font-weight:500;color:#f0f0f0}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:#22222a;border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-size:12px;padding:10px 16px;border-radius:8px;display:none;z-index:999;font-family:'DM Mono',monospace}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">AI_MONITOR <span>SDK DEMO v1.0.0</span></div>
+  <div class="topbar-right">
+    <div class="sdk-status">
+      <div class="pulse" id="pulseDot"></div>
+      <span id="sdkStatusText">SDK ACTIVE</span>
+    </div>
+    <label class="toggle-monitor">
+      <div class="toggle">
+        <input type="checkbox" id="monitorToggle" checked onchange="toggleMonitoring()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </div>
+      MONITORING
+    </label>
+    <button class="btn-copy-sdk" id="copyBtn" onclick="copySDKCode()">Copy SDK Code</button>
+    <button class="btn-dashboard" onclick="window.location.href='dashboard.html'">→ Dashboard</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- LEFT: YOUR APP -->
+  <div class="left-panel">
+    <div class="panel-header">
+      <div class="panel-dot"></div>
+      Your App — Simulate API Calls
+    </div>
+    <div class="panel-body">
+
+      <div class="two-inputs">
+        <div class="form-group">
+          <label class="form-label">AI Provider</label>
+          <select class="form-select" id="providerSelect" onchange="updateModels()">
+            <option value="gemini">Gemini</option>
+            <option value="openai" selected>OpenAI</option>
+            <option value="anthropic">Anthropic</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Feature Tag</label>
+          <select class="form-select" id="featureSelect">
+            <option value="chat">chat</option>
+            <option value="summarizer">summarizer</option>
+            <option value="code-assistant">code-assistant</option>
+            <option value="image-caption">image-caption</option>
+            <option value="search">search</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Model</label>
+        <select class="form-select" id="modelSelect">
+          <option value="gpt-4o">gpt-4o</option>
+          <option value="gpt-4o-mini">gpt-4o-mini</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Sample Prompt</label>
+        <textarea class="form-textarea" id="promptInput">Explain quantum entanglement in simple terms</textarea>
+      </div>
+
+      <button class="send-btn" id="sendBtn" onclick="sendRequest()">⚡ Send Request</button>
+
+      <div class="form-group">
+        <label class="form-label">AI Response Output</label>
+        <div class="response-box">
+          <div class="rb-header">
+            <div class="rb-title">
+              <div class="win-dots">
+                <div class="win-dot" style="background:#f06292"></div>
+                <div class="win-dot" style="background:#f5a623"></div>
+                <div class="win-dot" style="background:#7ee8a2"></div>
+              </div>
+              ai-response.json
+            </div>
+            <button class="rb-copy" onclick="copyResponse()">Copy</button>
+          </div>
+          <div class="rb-content empty" id="responseContent">Waiting for request...</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">SDK Integration — 2 lines only</label>
+        <div class="response-box">
+          <div class="rb-header">
+            <div class="rb-title">
+              <div class="win-dots">
+                <div class="win-dot" style="background:#f06292"></div>
+                <div class="win-dot" style="background:#f5a623"></div>
+                <div class="win-dot" style="background:#7ee8a2"></div>
+              </div>
+              your-app.js
+            </div>
+          </div>
+          <div class="code-content">import { AIMonitorSDK } from '@ai-monitor/sdk';
+<span style="color:#444">// SDK intercepts all AI calls automatically.</span>
+AIMonitorSDK.init({ apiKey: 'aim_prod_your_key_here' });</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: SDK MONITOR -->
+  <div class="right-panel">
+
+    <div class="stats-bar">
+      <div class="stat-cell">
+        <div class="stat-label">Total Calls</div>
+        <div class="stat-val" id="totalCalls">0</div>
+        <div class="stat-sub">this session</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Total Cost</div>
+        <div class="stat-val" id="totalCost" style="color:#7ee8a2">$0.0000</div>
+        <div class="stat-sub">USD today</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">Avg Latency</div>
+        <div class="stat-val" id="avgLatency">—</div>
+        <div class="stat-sub">milliseconds</div>
+      </div>
+    </div>
+
+    <div class="budget-row">
+      <div class="budget-label">Daily Budget</div>
+      <div class="budget-track"><div class="budget-fill" id="budgetFill" style="width:0%;background:#7ee8a2"></div></div>
+      <div class="budget-text" id="budgetText">$0.00 / $5.00</div>
+    </div>
+
+    <div class="spark-row">
+      <div class="spark-label">Cost Trend (last 10 calls)</div>
+      <div class="spark-wrap"><canvas id="sparkCanvas"></canvas></div>
+    </div>
+
+    <div class="donut-row">
+      <div class="donut-wrap">
+        <canvas id="donutCanvas" width="56" height="56"></canvas>
+        <div class="donut-center" id="donutCenter">—</div>
+      </div>
+      <div class="donut-legend" id="donutLegend">
+        <div class="dl-item"><div class="dl-left"><div class="dl-dot" style="background:#7ee8a2"></div>Gemini</div><div class="dl-val">$0.0000</div></div>
+        <div class="dl-item"><div class="dl-left"><div class="dl-dot" style="background:#5bc4f5"></div>OpenAI</div><div class="dl-val">$0.0000</div></div>
+        <div class="dl-item"><div class="dl-left"><div class="dl-dot" style="background:#f06292"></div>Anthropic</div><div class="dl-val">$0.0000</div></div>
+      </div>
+    </div>
+
+    <div class="log-header">
+      <div class="log-header-left">
+        Live Event Log
+        <span class="log-count" id="logCount">0</span>
+      </div>
+      <button class="log-clear" onclick="clearLog()">Clear log</button>
+    </div>
+
+    <div class="log-list" id="logList">
+      <div class="log-empty" id="logEmpty">
+        <div class="log-empty-icon">📡</div>
+        <div>No events yet</div>
+        <div style="font-size:11px;color:#333;margin-top:4px">Send a request to see live SDK events</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── SDK CLASS ── */
+class AIMonitorSDK {
+  constructor(){
+    this.enabled=true;
+    this.onEvent=null;
+  }
+  init(config){
+    this.config=config;
+    this.enabled=true;
+  }
+  simulateCall(provider,model,feature,prompt){
+    if(!this.enabled) return null;
+    const inputTokens=Math.round(prompt.length/4)+Math.floor(Math.random()*60+20);
+    const outputTokens=Math.round(120+Math.random()*380);
+    const latency=Math.round(400+Math.random()*1100);
+    const rates={
+      'gpt-4o':{i:2.50,o:10.00},
+      'gpt-4o-mini':{i:0.15,o:0.60},
+      'gemini-1.5-flash':{i:0.075,o:0.30},
+      'gemini-1.5-pro':{i:3.50,o:10.50},
+      'claude-3-haiku':{i:0.25,o:1.25},
+      'claude-3-5-sonnet':{i:3.00,o:15.00}
+    };
+    const r=rates[model]||{i:1.00,o:3.00};
+    const cost=(inputTokens/1e6)*r.i+(outputTokens/1e6)*r.o;
+    return{provider,model,feature,inputTokens,outputTokens,cost,latency,timestamp:new Date()};
+  }
+}
+
+const sdk=new AIMonitorSDK();
+sdk.init({apiKey:'aim_demo_key'});
+
+/* ── STATE ── */
+let events=[];
+let totalCost=0;
+let monitoring=true;
+const BUDGET=5.00;
+
+const models={
+  gemini:['gemini-1.5-flash','gemini-1.5-pro'],
+  openai:['gpt-4o','gpt-4o-mini'],
+  anthropic:['claude-3-haiku','claude-3-5-sonnet']
+};
+
+const responses={
+  gemini:[
+    'Simulated Gemini: Quantum entanglement is a phenomenon where two particles become correlated so that the quantum state of each cannot be described independently, even across vast distances.',
+    'Simulated Gemini: Great question. The core principle here operates below the level of classical physics — at the quantum scale, particles behave in ways that defy our everyday intuitions.'
+  ],
+  openai:[
+    'Simulated GPT-4o: Entanglement is a core principle of quantum mechanics. It describes how particles can become linked, sharing a single quantum state regardless of the physical distance between them.',
+    'Simulated GPT-4o: Here is a concise breakdown. The underlying mechanism operates at the quantum level and has been experimentally verified to work instantaneously across any distance.'
+  ],
+  anthropic:[
+    'Simulated Claude: Quantum entanglement occurs when particles interact such that the quantum state of each cannot be described independently of the others, even when separated by large distances.',
+    'Simulated Claude: Happy to help with this. Entanglement is essentially a correlation between quantum systems — Einstein famously called it "spooky action at a distance" because it seemed to violate locality.'
+  ]
+};
+
+/* ── MODEL SWITCH ── */
+function updateModels(){
+  const p=document.getElementById('providerSelect').value;
+  const sel=document.getElementById('modelSelect');
+  sel.innerHTML=models[p].map(m=>`<option value="${m}">${m}</option>`).join('');
+}
+
+/* ── SEND REQUEST ── */
+function sendRequest(){
+  if(!monitoring){showToast('Monitoring is paused');return;}
+  const provider=document.getElementById('providerSelect').value;
+  const feature=document.getElementById('featureSelect').value;
+  const model=document.getElementById('modelSelect').value;
+  const prompt=document.getElementById('promptInput').value.trim()||'Hello';
+  const btn=document.getElementById('sendBtn');
+  const rc=document.getElementById('responseContent');
+  btn.disabled=true;
+  btn.textContent='⏳ Sending...';
+  rc.className='rb-content';
+  rc.innerHTML='<span class="typing"></span>';
+  const ev=sdk.simulateCall(provider,model,feature,prompt);
+  setTimeout(()=>{
+    const resp=responses[provider][Math.floor(Math.random()*responses[provider].length)];
+    rc.textContent=resp;
+    btn.disabled=false;
+    btn.textContent='⚡ Send Request';
+    addEvent(ev);
+  },Math.round(ev.latency*0.35));
+}
+
+/* ── ADD EVENT ── */
+function addEvent(ev){
+  events.push(ev);
+  totalCost+=ev.cost;
+  updateStats();
+  updateBudget();
+  updateSparkline();
+  updateDonut();
+  addLogCard(ev);
+}
+
+/* ── STATS ── */
+function updateStats(){
+  document.getElementById('totalCalls').textContent=events.length;
+  document.getElementById('totalCost').textContent='$'+totalCost.toFixed(4);
+  const avg=Math.round(events.reduce((s,e)=>s+e.latency,0)/events.length);
+  document.getElementById('avgLatency').textContent=avg+'ms';
+  document.getElementById('logCount').textContent=events.length;
+}
+
+/* ── BUDGET ── */
+function updateBudget(){
+  const pct=Math.min(100,(totalCost/BUDGET)*100);
+  const fill=document.getElementById('budgetFill');
+  fill.style.width=pct+'%';
+  fill.style.background=pct>=90?'#f06292':pct>=70?'#f5a623':'#7ee8a2';
+  document.getElementById('budgetText').textContent='$'+totalCost.toFixed(4)+' / $'+BUDGET.toFixed(2);
+}
+
+/* ── SPARKLINE ── */
+function updateSparkline(){
+  const canvas=document.getElementById('sparkCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.offsetWidth||400;
+  canvas.width=W*window.devicePixelRatio;
+  canvas.height=48*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  ctx.clearRect(0,0,W,48);
+  const last=events.slice(-10);
+  if(last.length<2) return;
+  const costs=last.map(e=>e.cost);
+  const maxC=Math.max(...costs);
+  const minC=Math.min(...costs);
+  const range=maxC-minC||maxC||1;
+  const pts=costs.map((c,i)=>({
+    x:(i/(costs.length-1))*(W-16)+8,
+    y:44-((c-minC)/range)*36
+  }));
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++){
+    const cx=(pts[i-1].x+pts[i].x)/2;
+    ctx.bezierCurveTo(cx,pts[i-1].y,cx,pts[i].y,pts[i].x,pts[i].y);
+  }
+  ctx.strokeStyle='#7ee8a2';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.lineTo(pts[pts.length-1].x,48);
+  ctx.lineTo(pts[0].x,48);
+  ctx.closePath();
+  ctx.fillStyle='rgba(126,232,162,0.07)';
+  ctx.fill();
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2.5,0,Math.PI*2);
+    ctx.fillStyle='#7ee8a2';
+    ctx.fill();
+  });
+}
+
+/* ── DONUT ── */
+function updateDonut(){
+  const pc={gemini:0,openai:0,anthropic:0};
+  events.forEach(e=>{if(pc[e.provider]!==undefined)pc[e.provider]+=e.cost;});
+  const total=Object.values(pc).reduce((a,b)=>a+b,0)||1;
+  const canvas=document.getElementById('donutCanvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,56,56);
+  const cx=28,cy=28,r=24,ir=16;
+  let angle=-Math.PI/2;
+  const colors=['#7ee8a2','#5bc4f5','#f06292'];
+  ['gemini','openai','anthropic'].forEach((p,i)=>{
+    const slice=(pc[p]/total)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();
+    ctx.fillStyle=colors[i];
+    ctx.globalAlpha=slice>0.05?0.85:0.15;
+    ctx.fill();
+    angle+=slice;
+  });
+  ctx.beginPath();
+  ctx.arc(cx,cy,ir,0,Math.PI*2);
+  ctx.fillStyle='#0e0e10';
+  ctx.globalAlpha=1;
+  ctx.fill();
+  document.getElementById('donutCenter').textContent=events.length?'$'+totalCost.toFixed(3):'—';
+  document.getElementById('donutLegend').innerHTML=['gemini','openai','anthropic'].map((p,i)=>`
+    <div class="dl-item">
+      <div class="dl-left"><div class="dl-dot" style="background:${colors[i]}"></div>${p.charAt(0).toUpperCase()+p.slice(1)}</div>
+      <div class="dl-val">$${pc[p].toFixed(4)}</div>
+    </div>`).join('');
+}
+
+/* ── LOG CARD ── */
+function addLogCard(ev){
+  document.getElementById('logEmpty')?.remove();
+  const pbClass={gemini:'pb-gemini',openai:'pb-openai',anthropic:'pb-anthropic'};
+  const fbClass={'chat':'fb-chat','summarizer':'fb-summarizer','code-assistant':'fb-code-assistant','image-caption':'fb-image-caption','search':'fb-search'};
+  const time=ev.timestamp.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const card=document.createElement('div');
+  card.className='log-card';
+  card.innerHTML=`
+    <div class="log-card-top">
+      <span class="pb ${pbClass[ev.provider]}">${ev.provider.toUpperCase()}</span>
+      <span class="fb ${fbClass[ev.feature]||'fb-chat'}">${ev.feature}</span>
+      <span class="log-time">${time}</span>
+    </div>
+    <div class="log-model">${ev.model}</div>
+    <div class="log-stats">
+      <div class="ls"><div class="ls-label">Input</div><div class="ls-val">${ev.inputTokens.toLocaleString()}</div></div>
+      <div class="ls"><div class="ls-label">Output</div><div class="ls-val">${ev.outputTokens.toLocaleString()}</div></div>
+      <div class="ls"><div class="ls-label">Cost</div><div class="ls-val" style="color:#7ee8a2">$${ev.cost.toFixed(5)}</div></div>
+      <div class="ls"><div class="ls-label">Latency</div><div class="ls-val">${ev.latency}ms</div></div>
+    </div>`;
+  const list=document.getElementById('logList');
+  list.insertBefore(card,list.firstChild);
+}
+
+/* ── MONITORING TOGGLE ── */
+function toggleMonitoring(){
+  monitoring=document.getElementById('monitorToggle').checked;
+  const dot=document.getElementById('pulseDot');
+  const txt=document.getElementById('sdkStatusText');
+  dot.className=monitoring?'pulse':'pulse inactive';
+  txt.textContent=monitoring?'SDK ACTIVE':'SDK PAUSED';
+}
+
+/* ── CLEAR ── */
+function clearLog(){
+  events=[];totalCost=0;
+  document.getElementById('logList').innerHTML=`<div class="log-empty" id="logEmpty"><div class="log-empty-icon">📡</div><div>No events yet</div><div style="font-size:11px;color:#333;margin-top:4px">Send a request to see live SDK events</div></div>`;
+  document.getElementById('totalCalls').textContent='0';
+  document.getElementById('totalCost').textContent='$0.0000';
+  document.getElementById('avgLatency').textContent='—';
+  document.getElementById('logCount').textContent='0';
+  document.getElementById('budgetFill').style.width='0%';
+  document.getElementById('budgetText').textContent='$0.00 / $5.00';
+  document.getElementById('responseContent').className='rb-content empty';
+  document.getElementById('responseContent').textContent='Waiting for request...';
+  const c=document.getElementById('sparkCanvas');
+  if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
+  updateDonut();
+}
+
+/* ── COPY SDK ── */
+function copySDKCode(){
+  const code=`class AIMonitorSDK {
+  constructor() {
+    this.enabled = true;
+    this.queue = [];
+  }
+
+  init(config) {
+    this.config = config;
+    this.patchFetch();
+    this.startFlushing();
+    console.log('[AIMonitor] SDK initialized');
+  }
+
+  patchFetch() {
+    const self = this;
+    const original = globalThis.fetch;
+    globalThis.fetch = async function(url, options = {}) {
+      const start = performance.now();
+      const response = await original(url, options);
+      const latency = Math.round(performance.now() - start);
+      const provider = self.detectProvider(url.toString());
+      if (provider) {
+        response.clone().json().then(data => {
+          const event = self.buildEvent(provider, data, options, latency);
+          if (event) self.queue.push(event);
+        }).catch(() => {});
+      }
+      return response;
+    };
+  }
+
+  detectProvider(url) {
+    if (url.includes('generativelanguage.googleapis.com')) return 'gemini';
+    if (url.includes('api.openai.com')) return 'openai';
+    if (url.includes('api.anthropic.com')) return 'anthropic';
+    return null;
+  }
+
+  buildEvent(provider, data, options, latency) {
+    try {
+      const body = JSON.parse(options.body || '{}');
+      const model = body.model || 'unknown';
+      const feature = options.headers?.['x-feature-tag'] || 'default';
+      const usage = data.usage || data.usageMetadata || {};
+      const inputTokens = usage.prompt_tokens || usage.promptTokenCount || 0;
+      const outputTokens = usage.completion_tokens || usage.candidatesTokenCount || 0;
+      const pricing = {
+        'gemini-1.5-flash': { input: 0.075, output: 0.30 },
+        'gpt-4o':           { input: 2.50,  output: 10.00 },
+        'gpt-4o-mini':      { input: 0.15,  output: 0.60 },
+        'claude-3-haiku':   { input: 0.25,  output: 1.25 }
+      };
+      const rates = pricing[model] || { input: 1.00, output: 3.00 };
+      const cost = (inputTokens / 1_000_000) * rates.input +
+                   (outputTokens / 1_000_000) * rates.output;
+      return { provider, model, feature, inputTokens, outputTokens, cost, latency, timestamp: Date.now() };
+    } catch { return null; }
+  }
+
+  startFlushing() {
+    setInterval(() => this.flush(), 5000);
+  }
+
+  async flush() {
+    if (!this.queue.length) return;
+    const batch = this.queue.splice(0);
+    try {
+      await fetch('https://your-api.com/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.config.apiKey
+        },
+        body: JSON.stringify({ events: batch })
+      });
+    } catch {
+      this.queue.unshift(...batch);
+    }
+  }
+}
+
+// Usage in your app — just 2 lines:
+// import { AIMonitorSDK } from '@ai-monitor/sdk';
+// AIMonitorSDK.init({ apiKey: 'aim_prod_your_key_here' });`;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy SDK Code';btn.classList.remove('copied');},2000);
+  }).catch(()=>showToast('Select all code manually and copy'));
+}
+
+/* ── COPY RESPONSE ── */
+function copyResponse(){
+  const text=document.getElementById('responseContent').textContent;
+  if(!text||text==='Waiting for request...') return;
+  navigator.clipboard.writeText(text).then(()=>showToast('Response copied'));
+}
+
+/* ── TOAST ── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✓ '+msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',2500);
+}
+
+/* ── PRELOAD 4 SAMPLE EVENTS ── */
+[
+  {provider:'openai',   model:'gpt-4o',            feature:'chat'},
+  {provider:'gemini',   model:'gemini-1.5-flash',   feature:'summarizer'},
+  {provider:'anthropic',model:'claude-3-haiku',      feature:'code-assistant'},
+  {provider:'openai',   model:'gpt-4o-mini',         feature:'search'}
+].forEach(s=>{
+  const ev=sdk.simulateCall(s.provider,s.model,s.feature,'Sample prompt for demo preload');
+  if(ev) addEvent(ev);
+});
+
+console.log('PAGE OK — sdk-demo.html loaded');
+</script>
+</body>
+</html>

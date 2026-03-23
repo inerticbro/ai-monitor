@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Monitor — Pricing</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:wght@300;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:#0e0e10;color:#f0f0f0;min-height:100vh;font-size:13px}
+
+/* NAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;border-bottom:1px solid rgba(255,255,255,0.07);position:sticky;top:0;background:#0e0e10;z-index:10}
+.nav-logo{font-size:15px;font-weight:500;color:#7ee8a2;letter-spacing:0.08em;cursor:pointer}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-link{font-size:12px;color:#666;text-decoration:none;cursor:pointer;transition:color 0.15s;letter-spacing:0.04em}
+.nav-link:hover{color:#f0f0f0}
+.nav-btns{display:flex;gap:10px}
+.btn-login{padding:7px 16px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-login:hover{color:#f0f0f0;border-color:rgba(255,255,255,0.2)}
+.btn-start{padding:7px 16px;background:rgba(126,232,162,0.1);border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:12px;border-radius:6px;cursor:pointer;transition:all 0.15s}
+.btn-start:hover{background:rgba(126,232,162,0.2)}
+
+/* HERO */
+.hero{text-align:center;padding:72px 24px 56px}
+.hero-tag{display:inline-block;font-size:11px;letter-spacing:0.12em;color:#7ee8a2;background:rgba(126,232,162,0.08);border:1px solid rgba(126,232,162,0.2);border-radius:20px;padding:4px 14px;margin-bottom:20px;text-transform:uppercase}
+.hero-title{font-family:'Fraunces',serif;font-size:48px;font-weight:300;color:#f0f0f0;line-height:1.15;margin-bottom:16px;letter-spacing:-0.01em}
+.hero-title span{color:#7ee8a2;font-style:italic}
+.hero-sub{font-size:14px;color:#555;max-width:500px;margin:0 auto 32px;line-height:1.7}
+.billing-toggle{display:inline-flex;align-items:center;gap:12px;background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 16px;font-size:12px;color:#888}
+.toggle-switch{position:relative;width:40px;height:22px}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.ts-track{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:11px;cursor:pointer;transition:background 0.2s}
+.toggle-switch input:checked+.ts-track{background:#7ee8a2}
+.ts-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;pointer-events:none}
+.toggle-switch input:checked~.ts-thumb{transform:translateX(18px)}
+.save-pill{background:rgba(126,232,162,0.12);color:#7ee8a2;font-size:10px;font-weight:500;letter-spacing:0.08em;padding:2px 8px;border-radius:20px;border:1px solid rgba(126,232,162,0.2)}
+
+/* PLANS GRID */
+.plans-wrap{max-width:1100px;margin:0 auto;padding:0 24px 80px}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:64px}
+.plan-card{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:28px;position:relative;transition:border-color 0.2s}
+.plan-card:hover{border-color:rgba(255,255,255,0.14)}
+.plan-card.popular{border:2px solid #7ee8a2;background:#18181c}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#7ee8a2;color:#0a1f14;font-size:10px;font-weight:500;letter-spacing:0.1em;padding:3px 14px;border-radius:20px;white-space:nowrap}
+.plan-name{font-size:11px;font-weight:500;letter-spacing:0.12em;color:#555;text-transform:uppercase;margin-bottom:10px}
+.plan-price{display:flex;align-items:baseline;gap:4px;margin-bottom:6px}
+.plan-amount{font-family:'Fraunces',serif;font-size:42px;font-weight:600;color:#f0f0f0;line-height:1}
+.plan-currency{font-size:18px;color:#888;align-self:flex-start;margin-top:8px}
+.plan-period{font-size:12px;color:#555}
+.plan-annual{font-size:11px;color:#444;margin-bottom:20px;min-height:16px}
+.plan-desc{font-size:12px;color:#555;line-height:1.6;margin-bottom:20px;min-height:54px}
+.plan-cta{width:100%;padding:11px;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;margin-bottom:24px}
+.cta-free{background:transparent;border:1px solid rgba(255,255,255,0.12);color:#888}
+.cta-free:hover{color:#f0f0f0;border-color:rgba(255,255,255,0.22)}
+.cta-pro{background:rgba(126,232,162,0.12);border:1px solid rgba(126,232,162,0.35);color:#7ee8a2}
+.cta-pro:hover{background:rgba(126,232,162,0.22)}
+.cta-team{background:rgba(91,196,245,0.1);border:1px solid rgba(91,196,245,0.3);color:#5bc4f5}
+.cta-team:hover{background:rgba(91,196,245,0.18)}
+.plan-divider{border:none;border-top:1px solid rgba(255,255,255,0.06);margin-bottom:20px}
+.features-label{font-size:10px;letter-spacing:0.08em;color:#444;text-transform:uppercase;margin-bottom:12px}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.feature-list li{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#888;line-height:1.5}
+.feature-list li.included{color:#ccc}
+.check{font-size:11px;flex-shrink:0;margin-top:1px}
+.check.yes{color:#7ee8a2}
+.check.no{color:#333}
+
+/* COMPARISON TABLE */
+.compare-wrap{margin-bottom:64px}
+.compare-title{font-family:'Fraunces',serif;font-size:28px;font-weight:300;text-align:center;margin-bottom:32px;color:#f0f0f0}
+.compare-table{width:100%;border-collapse:collapse;background:#18181c;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)}
+.compare-table thead th{padding:14px 20px;text-align:left;font-size:11px;font-weight:500;letter-spacing:0.08em;color:#555;border-bottom:1px solid rgba(255,255,255,0.07);text-transform:uppercase}
+.compare-table thead th:not(:first-child){text-align:center}
+.compare-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+.compare-table tbody tr:hover{background:rgba(255,255,255,0.02)}
+.compare-table tbody tr:last-child{border-bottom:none}
+.compare-table tbody td{padding:12px 20px;font-size:12px;color:#888}
+.compare-table tbody td:not(:first-child){text-align:center}
+.compare-table tbody td:first-child{color:#ccc}
+.cat-row td{background:#22222a;font-size:10px;font-weight:500;letter-spacing:0.1em;color:#555;text-transform:uppercase;padding:8px 20px}
+.c-yes{color:#7ee8a2;font-size:14px}
+.c-no{color:#333;font-size:14px}
+.c-val{color:#f0f0f0;font-weight:500}
+.c-pro{color:#7ee8a2;font-weight:500}
+.c-team{color:#5bc4f5;font-weight:500}
+.popular-col{background:rgba(126,232,162,0.03)}
+
+/* FAQ */
+.faq-wrap{margin-bottom:64px}
+.faq-title{font-family:'Fraunces',serif;font-size:28px;font-weight:300;text-align:center;margin-bottom:32px;color:#f0f0f0}
+.faq-list{display:flex;flex-direction:column;gap:8px;max-width:700px;margin:0 auto}
+.faq-item{background:#18181c;border:1px solid rgba(255,255,255,0.07);border-radius:8px;overflow:hidden}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;font-size:13px;color:#f0f0f0;transition:background 0.15s;gap:12px}
+.faq-q:hover{background:rgba(255,255,255,0.03)}
+.faq-arrow{font-size:10px;color:#555;transition:transform 0.2s;flex-shrink:0}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+.faq-a{display:none;padding:0 20px 16px;font-size:12px;color:#666;line-height:1.8}
+.faq-item.open .faq-a{display:block}
+
+/* CTA STRIP */
+.cta-strip{background:#18181c;border:1px solid rgba(126,232,162,0.12);border-radius:14px;padding:40px;text-align:center;margin-bottom:64px}
+.cta-strip h2{font-family:'Fraunces',serif;font-size:28px;font-weight:300;color:#f0f0f0;margin-bottom:12px}
+.cta-strip p{font-size:12px;color:#555;margin-bottom:24px;line-height:1.7}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-cta-primary{padding:11px 28px;background:rgba(126,232,162,0.12);border:1px solid rgba(126,232,162,0.35);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:13px;border-radius:8px;cursor:pointer;transition:all 0.15s}
+.btn-cta-primary:hover{background:rgba(126,232,162,0.22)}
+.btn-cta-secondary{padding:11px 28px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:13px;border-radius:8px;cursor:pointer;transition:all 0.15s}
+.btn-cta-secondary:hover{color:#f0f0f0}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center}
+.modal-backdrop.show{display:flex}
+.modal{background:#18181c;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:32px;width:440px;max-width:92vw;position:relative;text-align:center}
+.modal-x{position:absolute;top:14px;right:18px;background:none;border:none;color:#555;font-size:16px;cursor:pointer;font-family:'DM Mono',monospace}
+.modal-x:hover{color:#f0f0f0}
+.modal-plan{font-size:11px;font-weight:500;letter-spacing:0.1em;color:#555;text-transform:uppercase;margin-bottom:8px}
+.modal-title{font-family:'Fraunces',serif;font-size:26px;font-weight:300;color:#f0f0f0;margin-bottom:6px}
+.modal-price{font-size:13px;color:#7ee8a2;margin-bottom:24px}
+.form-group{text-align:left;margin-bottom:14px}
+.form-label{font-size:10px;color:#555;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;display:block}
+.form-input{width:100%;background:#22222a;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 12px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:rgba(126,232,162,0.4)}
+.form-input::placeholder{color:#444}
+.btn-checkout{width:100%;padding:12px;background:rgba(126,232,162,0.12);border:1px solid rgba(126,232,162,0.35);color:#7ee8a2;font-family:'DM Mono',monospace;font-size:13px;border-radius:8px;cursor:pointer;transition:all 0.15s;margin-top:4px}
+.btn-checkout:hover{background:rgba(126,232,162,0.22)}
+.modal-note{font-size:10px;color:#444;margin-top:12px;line-height:1.6}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:#22222a;border:1px solid rgba(126,232,162,0.3);color:#7ee8a2;font-size:12px;padding:10px 16px;border-radius:8px;display:none;z-index:999}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="nav-logo" onclick="window.location.href='dashboard.html'">AI_MONITOR</div>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html">Dashboard</a>
+    <span class="nav-link">Docs</span>
+    <span class="nav-link">Changelog</span>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-login" onclick="window.location.href='dashboard.html'">Log in</button>
+    <button class="btn-start" onclick="openCheckout('free','Free','$0')">Get started free</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Simple pricing</div>
+  <h1 class="hero-title">Pay for what you<br><span>actually use</span></h1>
+  <p class="hero-sub">Start free. Upgrade when you need more. No surprise bills — ironic for an AI cost monitor.</p>
+  <div class="billing-toggle">
+    <span>Monthly</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="billingToggle" onchange="switchBilling()">
+      <div class="ts-track"></div>
+      <div class="ts-thumb"></div>
+    </label>
+    <span>Annual</span>
+    <span class="save-pill">Save 20%</span>
+  </div>
+</div>
+
+<!-- PLANS -->
+<div class="plans-wrap">
+  <div class="plans-grid">
+
+    <!-- FREE -->
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">
+        <span class="plan-currency">$</span>
+        <span class="plan-amount">0</span>
+        <span class="plan-period">/ month</span>
+      </div>
+      <div class="plan-annual">&nbsp;</div>
+      <div class="plan-desc">Perfect for solo developers exploring AI cost monitoring for the first time.</div>
+      <button class="plan-cta cta-free" onclick="window.location.href='dashboard.html'">Start for free →</button>
+      <hr class="plan-divider">
+      <div class="features-label">What's included</div>
+      <ul class="feature-list">
+        <li class="included"><span class="check yes">✓</span>Up to 1M tokens tracked/month</li>
+        <li class="included"><span class="check yes">✓</span>3 AI providers (Gemini, OpenAI, Anthropic)</li>
+        <li class="included"><span class="check yes">✓</span>7-day data history</li>
+        <li class="included"><span class="check yes">✓</span>Email alerts</li>
+        <li class="included"><span class="check yes">✓</span>Basic cost breakdown</li>
+        <li class="included"><span class="check yes">✓</span>1 workspace</li>
+        <li><span class="check no">✕</span>Webhook notifications</li>
+        <li><span class="check no">✕</span>AI insights & recommendations</li>
+        <li><span class="check no">✕</span>Team members</li>
+        <li><span class="check no">✕</span>CSV export</li>
+      </ul>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card popular">
+      <div class="popular-badge">MOST POPULAR</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">
+        <span class="plan-currency">$</span>
+        <span class="plan-amount" id="pro-price">19</span>
+        <span class="plan-period">/ month</span>
+      </div>
+      <div class="plan-annual" id="pro-annual">&nbsp;</div>
+      <div class="plan-desc">For indie developers and small teams who rely on AI in production every day.</div>
+      <button class="plan-cta cta-pro" onclick="openCheckout('pro','Pro','$19/mo')">Start Pro trial →</button>
+      <hr class="plan-divider">
+      <div class="features-label">Everything in Free, plus</div>
+      <ul class="feature-list">
+        <li class="included"><span class="check yes">✓</span>Unlimited token tracking</li>
+        <li class="included"><span class="check yes">✓</span>90-day data history</li>
+        <li class="included"><span class="check yes">✓</span>Webhook notifications</li>
+        <li class="included"><span class="check yes">✓</span>AI insights & swap suggestions</li>
+        <li class="included"><span class="check yes">✓</span>Savings estimator</li>
+        <li class="included"><span class="check yes">✓</span>CSV & JSON export</li>
+        <li class="included"><span class="check yes">✓</span>Up to 3 team members</li>
+        <li class="included"><span class="check yes">✓</span>Custom alert rules</li>
+        <li class="included"><span class="check yes">✓</span>Priority email support</li>
+        <li><span class="check no">✕</span>SSO / SAML</li>
+      </ul>
+    </div>
+
+    <!-- TEAM -->
+    <div class="plan-card">
+      <div class="plan-name">Team</div>
+      <div class="plan-price">
+        <span class="plan-currency">$</span>
+        <span class="plan-amount" id="team-price">99</span>
+        <span class="plan-period">/ month</span>
+      </div>
+      <div class="plan-annual" id="team-annual">&nbsp;</div>
+      <div class="plan-desc">For growing teams that ship AI features at scale and need org-level controls.</div>
+      <button class="plan-cta cta-team" onclick="openCheckout('team','Team','$99/mo')">Start Team trial →</button>
+      <hr class="plan-divider">
+      <div class="features-label">Everything in Pro, plus</div>
+      <ul class="feature-list">
+        <li class="included"><span class="check yes">✓</span>Unlimited team members</li>
+        <li class="included"><span class="check yes">✓</span>Unlimited workspaces</li>
+        <li class="included"><span class="check yes">✓</span>SSO / SAML login</li>
+        <li class="included"><span class="check yes">✓</span>Role-based access control</li>
+        <li class="included"><span class="check yes">✓</span>1-year data history</li>
+        <li class="included"><span class="check yes">✓</span>Custom branding</li>
+        <li class="included"><span class="check yes">✓</span>Dedicated Slack support</li>
+        <li class="included"><span class="check yes">✓</span>SLA guarantee (99.9%)</li>
+        <li class="included"><span class="check yes">✓</span>Usage-based billing API</li>
+        <li class="included"><span class="check yes">✓</span>Audit logs</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="compare-wrap">
+    <div class="compare-title">Compare all features</div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:40%">Feature</th>
+          <th>Free</th>
+          <th class="popular-col" style="color:#7ee8a2">Pro</th>
+          <th>Team</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="cat-row"><td colspan="4">Tracking</td></tr>
+        <tr><td>Token tracking</td><td>1M/month</td><td class="popular-col c-pro">Unlimited</td><td class="c-team">Unlimited</td></tr>
+        <tr><td>AI providers</td><td>3</td><td class="popular-col c-pro">All</td><td class="c-team">All</td></tr>
+        <tr><td>Data history</td><td>7 days</td><td class="popular-col c-pro">90 days</td><td class="c-team">1 year</td></tr>
+        <tr><td>Real-time monitoring</td><td><span class="c-yes">✓</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr class="cat-row"><td colspan="4">Alerts & Notifications</td></tr>
+        <tr><td>Email alerts</td><td><span class="c-yes">✓</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>Webhook notifications</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>Slack notifications</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-no">✕</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>Custom alert rules</td><td>3 rules</td><td class="popular-col c-pro">Unlimited</td><td class="c-team">Unlimited</td></tr>
+        <tr class="cat-row"><td colspan="4">Insights & Export</td></tr>
+        <tr><td>AI recommendations</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>Savings estimator</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>CSV / JSON export</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-yes">✓</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr class="cat-row"><td colspan="4">Team & Access</td></tr>
+        <tr><td>Team members</td><td>1</td><td class="popular-col c-pro">Up to 3</td><td class="c-team">Unlimited</td></tr>
+        <tr><td>Workspaces</td><td>1</td><td class="popular-col c-pro">3</td><td class="c-team">Unlimited</td></tr>
+        <tr><td>SSO / SAML</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-no">✕</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr><td>Audit logs</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-no">✕</span></td><td><span class="c-yes">✓</span></td></tr>
+        <tr class="cat-row"><td colspan="4">Support</td></tr>
+        <tr><td>Support</td><td>Community</td><td class="popular-col c-pro">Priority email</td><td class="c-team">Dedicated Slack</td></tr>
+        <tr><td>SLA</td><td><span class="c-no">✕</span></td><td class="popular-col"><span class="c-no">✕</span></td><td class="c-team">99.9%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-wrap">
+    <div class="faq-title">Frequently asked questions</div>
+    <div class="faq-list">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">How does the 1M token limit on Free work? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">The free plan tracks up to 1 million tokens per month across all your AI API calls combined. This resets on the 1st of each month. If you exceed it, tracking pauses until the next reset — your app keeps running, we just stop counting.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Can I cancel anytime? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes, completely. Cancel from Settings → Billing at any time. You keep access until the end of your billing period. No cancellation fees, no questions asked.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Does the SDK slow down my app? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">No. The SDK wraps your fetch calls asynchronously and batches events in the background. The overhead is under 1ms per call in benchmarks. Your users will never notice it.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">What counts as a "token"? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">We track the same token counts reported by each AI provider in their API response. Input and output tokens are both counted. Our token estimation matches what you are billed for by the provider.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Is my API data secure? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes. We never store the content of your prompts or responses — only metadata (token counts, latency, model name, cost). Your actual AI inputs and outputs never leave your app. All data is encrypted in transit and at rest.</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">Do you offer a free trial on paid plans? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes — Pro and Team plans come with a 14-day free trial. No credit card required to start. You only get charged when the trial ends and you choose to continue.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA STRIP -->
+  <div class="cta-strip">
+    <h2>Ready to stop guessing your AI costs?</h2>
+    <p>Drop two lines of code into your app and get full visibility in minutes.<br>No credit card required to start.</p>
+    <div class="cta-btns">
+      <button class="btn-cta-primary" onclick="openCheckout('free','Free','$0')">Start for free →</button>
+      <button class="btn-cta-secondary" onclick="showToast('Demo booking coming soon')">Book a demo</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-backdrop" id="checkoutModal" onclick="backdropClose(event)">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div class="modal-plan" id="modal-plan-name">PRO</div>
+    <div class="modal-title" id="modal-title">Start your trial</div>
+    <div class="modal-price" id="modal-price">$19/month · 14-day free trial</div>
+    <div class="form-group">
+      <label class="form-label">Work Email</label>
+      <input class="form-input" id="checkout-email" type="email" placeholder="you@company.com"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" id="checkout-name" type="text" placeholder="Your name"/>
+    </div>
+    <div class="form-group" id="card-group">
+      <label class="form-label">Card Number (demo only)</label>
+      <input class="form-input" id="checkout-card" type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)"/>
+    </div>
+    <button class="btn-checkout" onclick="submitCheckout()" id="checkoutBtn">Start free trial →</button>
+    <div class="modal-note" id="modal-note">No charge during trial. Cancel anytime from Settings.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let isAnnual = false;
+
+const prices = {
+  pro: {monthly:19, annual:15},
+  team: {monthly:99, annual:79}
+};
+
+function switchBilling() {
+  isAnnual = document.getElementById('billingToggle').checked;
+  document.getElementById('pro-price').textContent = isAnnual ? prices.pro.annual : prices.pro.monthly;
+  document.getElementById('team-price').textContent = isAnnual ? prices.team.annual : prices.team.monthly;
+  document.getElementById('pro-annual').textContent = isAnnual ? 'Billed $'+( prices.pro.annual*12)+'/year — save $'+(( prices.pro.monthly - prices.pro.annual)*12) : '';
+  document.getElementById('team-annual').textContent = isAnnual ? 'Billed $'+(prices.team.annual*12)+'/year — save $'+((prices.team.monthly - prices.team.annual)*12) : '';
+}
+
+function openCheckout(plan, name, price) {
+  const modal = document.getElementById('checkoutModal');
+  document.getElementById('modal-plan-name').textContent = name.toUpperCase();
+  const cardGroup = document.getElementById('card-group');
+  const note = document.getElementById('modal-note');
+  const btn = document.getElementById('checkoutBtn');
+  if (plan === 'free') {
+    document.getElementById('modal-title').textContent = 'Create your free account';
+    document.getElementById('modal-price').textContent = 'Free forever · No credit card needed';
+    cardGroup.style.display = 'none';
+    note.textContent = 'Get started in 30 seconds. Upgrade anytime.';
+    btn.textContent = 'Create free account →';
+  } else {
+    const p = plan === 'pro' ? (isAnnual ? prices.pro.annual : prices.pro.monthly) : (isAnnual ? prices.team.annual : prices.team.monthly);
+    document.getElementById('modal-title').textContent = 'Start your 14-day trial';
+    document.getElementById('modal-price').textContent = '$'+p+'/month · 14-day free trial';
+    cardGroup.style.display = 'block';
+    note.textContent = 'No charge during trial. Cancel anytime from Settings.';
+    btn.textContent = 'Start free trial →';
+  }
+  document.getElementById('checkout-email').value = '';
+  document.getElementById('checkout-name').value = '';
+  document.getElementById('checkout-card').value = '';
+  modal.classList.add('show');
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function submitCheckout() {
+  const email = document.getElementById('checkout-email').value.trim();
+  const name = document.getElementById('checkout-name').value.trim();
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
+  if (!name) { showToast('Please enter your name'); return; }
+  const btn = document.getElementById('checkoutBtn');
+  btn.textContent = 'Setting up your account...';
+  btn.disabled = true;
+  setTimeout(() => {
+    closeModal();
+    btn.disabled = false;
+    showToast('Account created! Redirecting to dashboard...');
+    setTimeout(() => window.location.href = 'dashboard.html', 1800);
+  }, 1400);
+}
+
+function closeModal() {
+  document.getElementById('checkoutModal').classList.remove('show');
+}
+
+function backdropClose(e) {
+  if (e.target === document.getElementById('checkoutModal')) closeModal();
+}
+
+function toggleFaq(el) {
+  el.classList.toggle('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+console.log('PAGE OK — pricing.html loaded');
+</script>
+</body>
+</html>
